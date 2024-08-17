@@ -1,5 +1,5 @@
 build:
-	gcc .\src\main.c -o .\bin\main
+	gcc ./src/*.c -o ./bin/main
 
 run:
-	.\bin\main.exe
+	./bin/main.exe
