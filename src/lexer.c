@@ -5,10 +5,6 @@
 #include "../include/lexer.h"
 #include "../include/token.h"
 
-static const size_t KEYWORDS_LENGTH = 2;
-static const char *const KEYWORDS[2] = {"mut", "func"};
-static const char *const TYPES[4] = {"string", "int", "float", "bool"};
-
 static struct Token make_alloc_failure_token()
 {
     return (struct Token){TOKEN_EOF, NULL};
@@ -62,25 +58,12 @@ static struct Token make_number_token(char *chars, size_t *i, size_t length)
     }
     else
     {
-        token = make_token(TOKEN_INT, buffer);
+        token = make_token(TOKEN_INTEGER, buffer);
     }
 
     free(buffer);
 
     return token;
-}
-
-static bool is_keyword(char *val)
-{
-    for (size_t i = 0; i < KEYWORDS_LENGTH; i++)
-    {
-        if (strcmp(KEYWORDS[i], val) == 0)
-        {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
@@ -118,15 +101,89 @@ static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
     buffer[buffer_index] = '\0';
 
     struct Token token;
-
-    if (is_keyword(buffer))
+    if (strcmp("mut", buffer) == 0)
     {
-        token = make_token(TOKEN_KEYWORD, buffer);
+        token = make_token(TOKEN_MUTABLE, buffer);
+    }
+    else if (strcmp("func", buffer) == 0)
+    {
+        token = make_token(TOKEN_FUNCTION, buffer);
+    }
+    else if (strcmp("true", buffer) == 0)
+    {
+        token = make_token(TOKEN_TRUE, buffer);
+    }
+    else if (strcmp("false", buffer) == 0)
+    {
+        token = make_token(TOKEN_FALSE, buffer);
+    }
+    else if (strcmp("string", buffer) == 0)
+    {
+        token = make_token(TOKEN_TYPE, buffer);
+    }
+    else if (strcmp("int", buffer) == 0)
+    {
+        token = make_token(TOKEN_TYPE, buffer);
+    }
+    else if (strcmp("float", buffer) == 0)
+    {
+        token = make_token(TOKEN_TYPE, buffer);
+    }
+    else if (strcmp("bool", buffer) == 0)
+    {
+        token = make_token(TOKEN_TYPE, buffer);
     }
     else
     {
         token = make_token(TOKEN_IDENTIFIER, buffer);
     }
+
+    free(buffer);
+
+    return token;
+}
+
+static struct Token make_string_token(char *chars, size_t *i, size_t length)
+{
+    // Skip first " character
+    (*i)++;
+
+    /// Initial buffer capacity
+    size_t buffer_capacity = 16;
+    char *buffer = (char *)malloc(buffer_capacity);
+    if (buffer == NULL)
+    {
+        return make_alloc_failure_token();
+    }
+
+    size_t buffer_index = 0;
+
+    while (*i < length && chars[*i] != '"')
+    {
+        // Resize buffer if needed
+        if (buffer_index >= buffer_capacity - 1)
+        {
+            buffer_capacity *= 2;
+            char *new_buffer = (char *)realloc(buffer, buffer_capacity);
+
+            if (new_buffer == NULL)
+            {
+                free(buffer);
+                return make_alloc_failure_token();
+            }
+
+            buffer = new_buffer;
+        }
+
+        buffer[buffer_index++] = chars[(*i)++];
+    }
+
+    // Skip last " character
+    (*i)++;
+
+    buffer[buffer_index] = '\0';
+
+    struct Token token = make_token(TOKEN_STRING, buffer);
 
     free(buffer);
 
@@ -154,6 +211,21 @@ struct Token *lexer(char *chars, size_t length)
         if (isdigit((unsigned char)chars[i]))
         {
             tokens[j++] = make_number_token(chars, &i, length);
+        }
+        else if (chars[i] == '"')
+        {
+            tokens[j++] = make_string_token(chars, &i, length);
+            i++;
+        }
+        else if (chars[i] == ';') {
+            char buffer[2] = {chars[i], '\0'};
+            tokens[j++] = make_token(TOKEN_SEMICOLON, buffer);
+            i++;
+        }
+        else if (chars[i] == '=') {
+            char buffer[2] = {chars[i], '\0'};
+            tokens[j++] = make_token(TOKEN_ASSIGNMENT, buffer);
+            i++;
         }
         else
         {
