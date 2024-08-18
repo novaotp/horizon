@@ -4,22 +4,33 @@ char *read_source_file(const char *path)
 {
     char *buffer = 0;
     long length;
-    FILE *f = fopen(path, "rb");
+    FILE *file = fopen(path, "rb");
 
-    if (f)
+    if (file)
     {
-        fseek(f, 0, SEEK_END);
-        length = ftell(f);
-        fseek(f, 0, SEEK_SET);
+        length = file_length(file);
 
-        buffer = malloc(length);
+        buffer = (char *)malloc(length + 1);
         if (buffer)
         {
-            fread(buffer, 1, length, f);
+            fread(buffer, 1, length, file);
+            buffer[length] = '\0';
         }
 
-        fclose(f);
+        fclose(file);
     }
 
     return buffer;
+}
+
+// Note : This sets the cursor of the file to the start.
+size_t file_length(FILE *file)
+{
+    long length;
+
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    return length;
 }

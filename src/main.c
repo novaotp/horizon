@@ -5,10 +5,9 @@
 
 int main()
 {
-    char *chars = read_source_file("./tests/sample_code/test2.hor");
+    char *chars = read_source_file("./tests/sample_code/test3.hor");
     struct Token *tokens = lexer(chars, strlen(chars));
 
-    size_t length = strlen(chars);
     for (struct Token token = *tokens; token.type != TOKEN_EOF; token = *++tokens)
     {
         printf("Token : %d | Type : %s\n", token.type, token.value);
