@@ -9,7 +9,7 @@ static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
     "=", TOKEN_ASSIGNMENT,
     ";", TOKEN_SEMICOLON,
     "(", TOKEN_LPAREN,
-    ")", TOKEN_LPAREN,
+    ")", TOKEN_RPAREN,
     "{", TOKEN_LBRACE,
     "}", TOKEN_RBRACE,
     "[", TOKEN_LBRACKET,
@@ -20,19 +20,56 @@ static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
     "/", TOKEN_DIVIDE,
     "%", TOKEN_MODULO,
     "!", TOKEN_NOT,
+    ":", TOKEN_COLON,
+    ".", TOKEN_DOT,
+    ",", TOKEN_COMMA,
+    ">", TOKEN_GREATERTHAN,
+    "<", TOKEN_LESSTHAN,
 };
 
 static struct StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
     ">=", TOKEN_GREATEROREQ,
     "<=", TOKEN_LESSOREQ,
-    ">", TOKEN_GREATERTHAN,
-    "<", TOKEN_LESSTHAN,
     "==", TOKEN_EQUAL,
     "&&", TOKEN_AND,
     "||", TOKEN_OR,
     "**", TOKEN_POWER,
     "//", TOKEN_INTDIVIDE,
 };
+
+struct Keyword {
+    const char *keyword;
+    enum TokenType type;
+};
+
+static struct Keyword keyword_map[] = {
+    {"mut", TOKEN_MUTABLE},
+    {"func", TOKEN_FUNCTION},
+    {"true", TOKEN_TRUE},
+    {"false", TOKEN_FALSE},
+    {"string", TOKEN_TYPE},
+    {"int", TOKEN_TYPE},
+    {"float", TOKEN_TYPE},
+    {"bool", TOKEN_TYPE},
+    {"void", TOKEN_TYPE},
+    {"auto", TOKEN_TYPE},
+    {"for", TOKEN_FOR},
+    {"foreach", TOKEN_FOREACH},
+    {"while", TOKEN_WHILE},
+    {"if", TOKEN_IF},
+    {"else", TOKEN_ELSE},
+};
+
+#define KEYWORD_MAP_SIZE (sizeof(keyword_map) / sizeof(keyword_map[0]))
+
+static enum TokenType lookup_keyword_type(const char *buffer) {
+    for (size_t i = 0; i < KEYWORD_MAP_SIZE; i++) {
+        if (strcmp(keyword_map[i].keyword, buffer) == 0) {
+            return keyword_map[i].type;
+        }
+    }
+    return TOKEN_IDENTIFIER;  // Default type if no keyword matches
+}
 
 struct Token check_token_type(const char *chars, size_t *index, size_t length) {
     // Check for double-character tokens first
@@ -151,43 +188,8 @@ static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
 
     buffer[buffer_index] = '\0';
 
-    struct Token token;
-    if (strcmp("mut", buffer) == 0)
-    {
-        token = make_token(TOKEN_MUTABLE, buffer);
-    }
-    else if (strcmp("func", buffer) == 0)
-    {
-        token = make_token(TOKEN_FUNCTION, buffer);
-    }
-    else if (strcmp("true", buffer) == 0)
-    {
-        token = make_token(TOKEN_TRUE, buffer);
-    }
-    else if (strcmp("false", buffer) == 0)
-    {
-        token = make_token(TOKEN_FALSE, buffer);
-    }
-    else if (strcmp("string", buffer) == 0)
-    {
-        token = make_token(TOKEN_TYPE, buffer);
-    }
-    else if (strcmp("int", buffer) == 0)
-    {
-        token = make_token(TOKEN_TYPE, buffer);
-    }
-    else if (strcmp("float", buffer) == 0)
-    {
-        token = make_token(TOKEN_TYPE, buffer);
-    }
-    else if (strcmp("bool", buffer) == 0)
-    {
-        token = make_token(TOKEN_TYPE, buffer);
-    }
-    else
-    {
-        token = make_token(TOKEN_IDENTIFIER, buffer);
-    }
+    enum TokenType type = lookup_keyword_type(buffer);
+    struct Token token = make_token(type, buffer);
 
     free(buffer);
 
@@ -251,11 +253,14 @@ struct Token *lexer(char *chars, size_t length)
         return NULL;
     }
 
+    size_t i = 0;
     size_t j = 0;
-    for (size_t i = 0; i < length; i++)
+
+    while (i < length)
     {
         if (isspace(chars[i]))
         {
+            i++;  // Skip whitespace
             continue;
         }
 
@@ -266,7 +271,6 @@ struct Token *lexer(char *chars, size_t length)
         else if (chars[i] == '"')
         {
             tokens[j++] = make_string_token(chars, &i, length);
-            i++;
         }
         else
         {
@@ -280,8 +284,6 @@ struct Token *lexer(char *chars, size_t length)
                 tokens[j++] = make_alpha_token(chars, &i, length);
             }
         }
-
-        i--; // Adjust `i` because the lexer loop will increment `i` again
     }
 
     tokens[j++] = make_token(TOKEN_EOF, "\0");

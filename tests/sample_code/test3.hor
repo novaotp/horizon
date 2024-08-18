@@ -1,1 +1,7 @@
-string3.14156295;
+auto age = Int.try_parse(getln("What is your age ? "));
+
+if (age < 18) {
+    println("You are under 18. Not allowed...");
+} else {
+    println("You are over 18. Welcome !");
+}

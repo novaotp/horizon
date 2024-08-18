@@ -44,8 +44,23 @@ enum TokenType
     TOKEN_BOOLEAN,
 
     // Punctuation
+    TOKEN_DOT,
+    TOKEN_COMMA,
+    TOKEN_COLON,
     TOKEN_SEMICOLON,
     TOKEN_ASSIGNMENT,
+
+    // Conditionals
+    TOKEN_IF,
+    TOKEN_ELSEIF,
+    TOKEN_ELSE,
+    TOKEN_SWITCH,
+    TOKEN_CASE,
+
+    // Loops
+    TOKEN_WHILE,
+    TOKEN_FOR,
+    TOKEN_FOREACH,
 
     // Keywords
     TOKEN_TRUE,
