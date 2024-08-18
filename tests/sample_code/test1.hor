@@ -1,1 +1,2 @@
 mut string message = "Hello";
+float my_value = (2 % 7) * 9;

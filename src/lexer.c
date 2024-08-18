@@ -5,6 +5,57 @@
 #include "../include/lexer.h"
 #include "../include/token.h"
 
+static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
+    "=", TOKEN_ASSIGNMENT,
+    ";", TOKEN_SEMICOLON,
+    "(", TOKEN_LPAREN,
+    ")", TOKEN_LPAREN,
+    "{", TOKEN_LBRACE,
+    "}", TOKEN_RBRACE,
+    "[", TOKEN_LBRACKET,
+    "]", TOKEN_RBRACKET,
+    "+", TOKEN_PLUS,
+    "-", TOKEN_MINUS,
+    "*", TOKEN_MULTIPLY,
+    "/", TOKEN_DIVIDE,
+    "%", TOKEN_MODULO,
+    "!", TOKEN_NOT,
+};
+
+static struct StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
+    ">=", TOKEN_GREATEROREQ,
+    "<=", TOKEN_LESSOREQ,
+    ">", TOKEN_GREATERTHAN,
+    "<", TOKEN_LESSTHAN,
+    "==", TOKEN_EQUAL,
+    "&&", TOKEN_AND,
+    "||", TOKEN_OR,
+    "**", TOKEN_POWER,
+    "//", TOKEN_INTDIVIDE,
+};
+
+struct Token check_token_type(const char *chars, size_t *index, size_t length) {
+    // Check for double-character tokens first
+    size_t double_char_map_length = sizeof(DOUBLE_CHAR_TOKENTYPE_MAP) / sizeof(DOUBLE_CHAR_TOKENTYPE_MAP[0]);
+    for (size_t i = 0; i < double_char_map_length; i++) {
+        if (*index < length - 1 && strncmp(&chars[*index], DOUBLE_CHAR_TOKENTYPE_MAP[i].str, 2) == 0) {
+            *index += 2;  // Move the index forward by 2 characters
+            return make_token(DOUBLE_CHAR_TOKENTYPE_MAP[i].type, DOUBLE_CHAR_TOKENTYPE_MAP[i].str);
+        }
+    }
+
+    // Check for single-character tokens
+    size_t single_char_map_length = sizeof(SINGLE_CHAR_TOKENTYPE_MAP) / sizeof(SINGLE_CHAR_TOKENTYPE_MAP[0]);
+    for (size_t i = 0; i < single_char_map_length; i++) {
+        if (*index < length && strncmp(&chars[*index], SINGLE_CHAR_TOKENTYPE_MAP[i].str, 1) == 0) {
+            *index += 1;
+            return make_token(SINGLE_CHAR_TOKENTYPE_MAP[i].type, SINGLE_CHAR_TOKENTYPE_MAP[i].str);
+        }
+    }
+
+    return make_token(TOKEN_EOF, "");
+}
+
 static struct Token make_alloc_failure_token()
 {
     return (struct Token){TOKEN_EOF, NULL};
@@ -217,19 +268,17 @@ struct Token *lexer(char *chars, size_t length)
             tokens[j++] = make_string_token(chars, &i, length);
             i++;
         }
-        else if (chars[i] == ';') {
-            char buffer[2] = {chars[i], '\0'};
-            tokens[j++] = make_token(TOKEN_SEMICOLON, buffer);
-            i++;
-        }
-        else if (chars[i] == '=') {
-            char buffer[2] = {chars[i], '\0'};
-            tokens[j++] = make_token(TOKEN_ASSIGNMENT, buffer);
-            i++;
-        }
         else
         {
-            tokens[j++] = make_alpha_token(chars, &i, length);
+            struct Token token = check_token_type(chars, &i, length);
+            if (token.type != TOKEN_EOF)
+            {
+                tokens[j++] = token;
+            }
+            else
+            {
+                tokens[j++] = make_alpha_token(chars, &i, length);
+            }
         }
 
         i--; // Adjust `i` because the lexer loop will increment `i` again
