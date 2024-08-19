@@ -5,44 +5,44 @@
 #include "../include/lexer.h"
 #include "../include/token.h"
 
-static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
-    "=", TOKEN_ASSIGNMENT,
-    ";", TOKEN_SEMICOLON,
-    "(", TOKEN_LPAREN,
-    ")", TOKEN_RPAREN,
-    "{", TOKEN_LBRACE,
-    "}", TOKEN_RBRACE,
-    "[", TOKEN_LBRACKET,
-    "]", TOKEN_RBRACKET,
-    "+", TOKEN_PLUS,
-    "-", TOKEN_MINUS,
-    "*", TOKEN_MULTIPLY,
-    "/", TOKEN_DIVIDE,
-    "%", TOKEN_MODULO,
-    "!", TOKEN_NOT,
-    ":", TOKEN_COLON,
-    ".", TOKEN_DOT,
-    ",", TOKEN_COMMA,
-    ">", TOKEN_GREATERTHAN,
-    "<", TOKEN_LESSTHAN,
-};
-
-static struct StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
-    ">=", TOKEN_GREATEROREQ,
-    "<=", TOKEN_LESSOREQ,
-    "==", TOKEN_EQUAL,
-    "&&", TOKEN_AND,
-    "||", TOKEN_OR,
-    "**", TOKEN_POWER,
-    "//", TOKEN_INTDIVIDE,
-};
-
-struct Keyword {
-    const char *keyword;
+struct StringTokenType {
+    const char *str;
     enum TokenType type;
 };
 
-static struct Keyword keyword_map[] = {
+static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
+    {"=", TOKEN_ASSIGNMENT},
+    {";", TOKEN_SEMICOLON},
+    {"(", TOKEN_LPAREN},
+    {")", TOKEN_RPAREN},
+    {"{", TOKEN_LBRACE},
+    {"}", TOKEN_RBRACE},
+    {"[", TOKEN_LBRACKET},
+    {"]", TOKEN_RBRACKET},
+    {"+", TOKEN_PLUS},
+    {"-", TOKEN_MINUS},
+    {"*", TOKEN_MULTIPLY},
+    {"/", TOKEN_DIVIDE},
+    {"%", TOKEN_MODULO},
+    {"!", TOKEN_NOT},
+    {":", TOKEN_COLON},
+    {".", TOKEN_DOT},
+    {",", TOKEN_COMMA},
+    {">", TOKEN_GREATERTHAN},
+    {"<", TOKEN_LESSTHAN},
+};
+
+static struct StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
+    {">=", TOKEN_GREATEROREQ},
+    {"<=", TOKEN_LESSOREQ},
+    {"==", TOKEN_EQUAL},
+    {"&&", TOKEN_AND},
+    {"||", TOKEN_OR},
+    {"**", TOKEN_POWER},
+    {"//", TOKEN_INTDIVIDE},
+};
+
+static struct StringTokenType KEYWORD_TOKENTYPE_MAP[] = {
     {"mut", TOKEN_MUTABLE},
     {"func", TOKEN_FUNCTION},
     {"true", TOKEN_TRUE},
@@ -60,30 +60,32 @@ static struct Keyword keyword_map[] = {
     {"else", TOKEN_ELSE},
 };
 
-#define KEYWORD_MAP_SIZE (sizeof(keyword_map) / sizeof(keyword_map[0]))
+#define SINGLE_CHAR_TOKENTYPE_MAP_SIZE (sizeof(SINGLE_CHAR_TOKENTYPE_MAP) / sizeof(SINGLE_CHAR_TOKENTYPE_MAP[0]))
+#define DOUBLE_CHAR_TOKENTYPE_MAP_SIZE (sizeof(DOUBLE_CHAR_TOKENTYPE_MAP) / sizeof(DOUBLE_CHAR_TOKENTYPE_MAP[0]))
+#define KEYWORD_TOKENTYPE_MAP_SIZE (sizeof(KEYWORD_TOKENTYPE_MAP) / sizeof(KEYWORD_TOKENTYPE_MAP[0]))
 
 static enum TokenType lookup_keyword_type(const char *buffer) {
-    for (size_t i = 0; i < KEYWORD_MAP_SIZE; i++) {
-        if (strcmp(keyword_map[i].keyword, buffer) == 0) {
-            return keyword_map[i].type;
+    for (size_t i = 0; i < KEYWORD_TOKENTYPE_MAP_SIZE; i++) {
+        if (strcmp(KEYWORD_TOKENTYPE_MAP[i].str, buffer) == 0) {
+            return KEYWORD_TOKENTYPE_MAP[i].type;
         }
     }
-    return TOKEN_IDENTIFIER;  // Default type if no keyword matches
+    
+    // Default type if no keyword matches
+    return TOKEN_IDENTIFIER;
 }
 
 struct Token check_token_type(const char *chars, size_t *index, size_t length) {
     // Check for double-character tokens first
-    size_t double_char_map_length = sizeof(DOUBLE_CHAR_TOKENTYPE_MAP) / sizeof(DOUBLE_CHAR_TOKENTYPE_MAP[0]);
-    for (size_t i = 0; i < double_char_map_length; i++) {
+    for (size_t i = 0; i < DOUBLE_CHAR_TOKENTYPE_MAP_SIZE; i++) {
         if (*index < length - 1 && strncmp(&chars[*index], DOUBLE_CHAR_TOKENTYPE_MAP[i].str, 2) == 0) {
-            *index += 2;  // Move the index forward by 2 characters
+            *index += 2;
             return make_token(DOUBLE_CHAR_TOKENTYPE_MAP[i].type, DOUBLE_CHAR_TOKENTYPE_MAP[i].str);
         }
     }
 
     // Check for single-character tokens
-    size_t single_char_map_length = sizeof(SINGLE_CHAR_TOKENTYPE_MAP) / sizeof(SINGLE_CHAR_TOKENTYPE_MAP[0]);
-    for (size_t i = 0; i < single_char_map_length; i++) {
+    for (size_t i = 0; i < SINGLE_CHAR_TOKENTYPE_MAP_SIZE; i++) {
         if (*index < length && strncmp(&chars[*index], SINGLE_CHAR_TOKENTYPE_MAP[i].str, 1) == 0) {
             *index += 1;
             return make_token(SINGLE_CHAR_TOKENTYPE_MAP[i].type, SINGLE_CHAR_TOKENTYPE_MAP[i].str);
@@ -98,7 +100,6 @@ static struct Token make_alloc_failure_token()
     return (struct Token){TOKEN_EOF, NULL};
 }
 
-// Function to handle numbers and create a token for them
 static struct Token make_number_token(char *chars, size_t *i, size_t length)
 {
     /// Initial buffer capacity

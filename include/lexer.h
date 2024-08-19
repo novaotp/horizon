@@ -6,9 +6,4 @@
 
 struct Token *lexer(char *chars, size_t length);
 
-struct StringTokenType {
-    char *str;
-    enum TokenType type;
-};
-
 #endif
