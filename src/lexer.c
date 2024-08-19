@@ -57,6 +57,7 @@ static struct StringTokenType KEYWORD_TOKENTYPE_MAP[] = {
     {"foreach", TOKEN_FOREACH},
     {"while", TOKEN_WHILE},
     {"if", TOKEN_IF},
+    {"else if", TOKEN_ELSEIF},
     {"else", TOKEN_ELSE},
 };
 
@@ -170,7 +171,9 @@ static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
     while (*i < length && (isalpha((unsigned char)chars[*i]) || chars[*i] == '_'))
     {
         // Resize buffer if needed
-        if (buffer_index >= buffer_capacity - 1)
+        // -4 -> -1 for \0 ; -3 for " if" part (only needed for else if)
+        // ? Maybe realloc below since this will run more often than else-if
+        if (buffer_index >= buffer_capacity - 4)
         {
             buffer_capacity *= 2;
             char *new_buffer = (char *)realloc(buffer, buffer_capacity);
@@ -185,6 +188,15 @@ static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
         }
 
         buffer[buffer_index++] = chars[(*i)++];
+    }
+
+    // "else if" support
+    // ? Look comment in while-loop for potential improvements
+    if (chars[*i] == ' ' && strncmp(&chars[(*i) + 1], "if", 2) == 0) {
+        buffer[buffer_index++] = ' ';
+        buffer[buffer_index++] = 'i';
+        buffer[buffer_index++] = 'f';
+        (*i) += 3;
     }
 
     buffer[buffer_index] = '\0';
