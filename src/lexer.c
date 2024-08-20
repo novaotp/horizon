@@ -5,12 +5,12 @@
 #include "../include/lexer.h"
 #include "../include/token.h"
 
-struct StringTokenType {
+typedef struct StringTokenType {
     const char *str;
-    enum TokenType type;
-};
+    TokenType type;
+} StringTokenType;
 
-static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
+static StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
     {"=", TOKEN_ASSIGNMENT},
     {";", TOKEN_SEMICOLON},
     {"(", TOKEN_LPAREN},
@@ -32,7 +32,7 @@ static struct StringTokenType SINGLE_CHAR_TOKENTYPE_MAP[] = {
     {"<", TOKEN_LESSTHAN},
 };
 
-static struct StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
+static StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
     {">=", TOKEN_GREATEROREQ},
     {"<=", TOKEN_LESSOREQ},
     {"==", TOKEN_EQUAL},
@@ -42,7 +42,7 @@ static struct StringTokenType DOUBLE_CHAR_TOKENTYPE_MAP[] = {
     {"//", TOKEN_INTDIVIDE},
 };
 
-static struct StringTokenType KEYWORD_TOKENTYPE_MAP[] = {
+static StringTokenType KEYWORD_TOKENTYPE_MAP[] = {
     {"mut", TOKEN_MUTABLE},
     {"func", TOKEN_FUNCTION},
     {"true", TOKEN_TRUE},
@@ -65,7 +65,7 @@ static struct StringTokenType KEYWORD_TOKENTYPE_MAP[] = {
 #define DOUBLE_CHAR_TOKENTYPE_MAP_SIZE (sizeof(DOUBLE_CHAR_TOKENTYPE_MAP) / sizeof(DOUBLE_CHAR_TOKENTYPE_MAP[0]))
 #define KEYWORD_TOKENTYPE_MAP_SIZE (sizeof(KEYWORD_TOKENTYPE_MAP) / sizeof(KEYWORD_TOKENTYPE_MAP[0]))
 
-static enum TokenType lookup_keyword_type(const char *buffer) {
+static TokenType lookup_keyword_type(const char *buffer) {
     for (size_t i = 0; i < KEYWORD_TOKENTYPE_MAP_SIZE; i++) {
         if (strcmp(KEYWORD_TOKENTYPE_MAP[i].str, buffer) == 0) {
             return KEYWORD_TOKENTYPE_MAP[i].type;
@@ -76,7 +76,7 @@ static enum TokenType lookup_keyword_type(const char *buffer) {
     return TOKEN_IDENTIFIER;
 }
 
-struct Token check_token_type(const char *chars, size_t *index, size_t length) {
+Token check_token_type(const char *chars, size_t *index, size_t length) {
     // Check for double-character tokens first
     for (size_t i = 0; i < DOUBLE_CHAR_TOKENTYPE_MAP_SIZE; i++) {
         if (*index < length - 1 && strncmp(&chars[*index], DOUBLE_CHAR_TOKENTYPE_MAP[i].str, 2) == 0) {
@@ -96,12 +96,12 @@ struct Token check_token_type(const char *chars, size_t *index, size_t length) {
     return make_token(TOKEN_EOF, "");
 }
 
-static struct Token make_alloc_failure_token()
+static Token make_alloc_failure_token()
 {
-    return (struct Token){TOKEN_EOF, NULL};
+    return (Token){TOKEN_EOF, NULL};
 }
 
-static struct Token make_number_token(char *chars, size_t *i, size_t length)
+static Token make_number_token(char *chars, size_t *i, size_t length)
 {
     /// Initial buffer capacity
     size_t buffer_capacity = 16;
@@ -141,7 +141,7 @@ static struct Token make_number_token(char *chars, size_t *i, size_t length)
 
     buffer[buffer_index] = '\0';
 
-    struct Token token;
+    Token token;
     if (is_dot_encountered)
     {
         token = make_token(TOKEN_FLOAT, buffer);
@@ -156,7 +156,7 @@ static struct Token make_number_token(char *chars, size_t *i, size_t length)
     return token;
 }
 
-static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
+static Token make_alpha_token(char *chars, size_t *i, size_t length)
 {
     /// Initial buffer capacity
     size_t buffer_capacity = 16;
@@ -201,15 +201,15 @@ static struct Token make_alpha_token(char *chars, size_t *i, size_t length)
 
     buffer[buffer_index] = '\0';
 
-    enum TokenType type = lookup_keyword_type(buffer);
-    struct Token token = make_token(type, buffer);
+    TokenType type = lookup_keyword_type(buffer);
+    Token token = make_token(type, buffer);
 
     free(buffer);
 
     return token;
 }
 
-static struct Token make_string_token(char *chars, size_t *i, size_t length)
+static Token make_string_token(char *chars, size_t *i, size_t length)
 {
     // Skip first " character
     (*i)++;
@@ -249,7 +249,7 @@ static struct Token make_string_token(char *chars, size_t *i, size_t length)
 
     buffer[buffer_index] = '\0';
 
-    struct Token token = make_token(TOKEN_STRING, buffer);
+    Token token = make_token(TOKEN_STRING, buffer);
 
     free(buffer);
 
@@ -257,10 +257,10 @@ static struct Token make_string_token(char *chars, size_t *i, size_t length)
 }
 
 // Lexer function
-struct Token *lexer(char *chars, size_t length)
+Token *lexer(char *chars, size_t length)
 {
     // Allocate memory for the array of tokens (+1 for EOF token)
-    struct Token *tokens = (struct Token *)malloc(sizeof(struct Token) * (length + 1));
+    Token *tokens = (Token *)malloc(sizeof(Token) * (length + 1));
     if (tokens == NULL)
     {
         return NULL;
@@ -302,7 +302,7 @@ struct Token *lexer(char *chars, size_t length)
     tokens[j++] = make_token(TOKEN_EOF, "\0");
 
     // Resize tokens to account for skipped characters.
-    tokens = realloc(tokens, sizeof(struct Token) * j);
+    tokens = realloc(tokens, sizeof(Token) * j);
     if (tokens == NULL)
     {
         return NULL;

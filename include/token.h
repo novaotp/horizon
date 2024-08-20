@@ -5,7 +5,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-enum TokenType
+typedef enum TokenType
 {
     // Parens
     TOKEN_LPAREN,
@@ -70,14 +70,14 @@ enum TokenType
     TOKEN_TYPE,
     
     TOKEN_EOF
-};
+} TokenType;
 
-struct Token
+typedef struct Token
 {
     enum TokenType type;
     char *value;
-};
+} Token;
 
-struct Token make_token(enum TokenType type, const char value[]);
+Token make_token(TokenType type, const char value[]);
 
 #endif // TOKEN_H

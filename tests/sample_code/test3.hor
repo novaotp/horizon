@@ -1,7 +1,11 @@
-auto age = Int.try_parse(getln("What is your age ? "));
+import "horizon/io" as io;
+
+auto age = int.try_parse(io.getln("What is your age ? "));
 float my_value = (2 % 7) * 9;
 mut string message = "Hello";
 
+/// Greets a person.
+/// @param name The name of the person to greet.
 func void greet(string name) {
     println("Hello #{name}");
 }

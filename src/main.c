@@ -2,16 +2,16 @@
 #include "../include/token.h"
 #include "../include/file.h"
 #include "../include/lexer.h"
+#include "../include/parser.h"
 
 int main()
 {
-    char *chars = read_source_file("./tests/sample_code/test3.hor");
-    struct Token *tokens = lexer(chars, strlen(chars));
+    char *chars = read_source_file("./tests/sample_code/test4.hor");
+    Token *tokens = lexer(chars, strlen(chars));
 
-    for (struct Token token = *tokens; token.type != TOKEN_EOF; token = *++tokens)
-    {
-        printf("Token : %d | Type : %s\n", token.type, token.value);
-    }
+    AbstractSyntaxTree ast = parser(tokens, sizeof(tokens) / sizeof(tokens[0]));
+
+    printf("%s", ast);
 
     return 0;
 }

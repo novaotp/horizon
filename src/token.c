@@ -1,8 +1,8 @@
 #include "../include/token.h"
 
-struct Token make_token(enum TokenType type, const char *value)
+Token make_token(TokenType type, const char *value)
 {
-    struct Token token;
+    Token token;
     token.type = type;
 
     token.value = (char *)malloc(strlen(value) + 1);
