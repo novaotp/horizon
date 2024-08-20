@@ -1,0 +1,23 @@
+import "horizon/http" as http;
+import "horizon/future" as future;
+
+pub type Response<Dynamic U default null> {
+    bool success;
+    string message;
+    Optional<U> data;
+};
+
+// Usage
+func void main() {
+    auto response = future.make<Response<string>>(func () {
+                        http
+                            .headers({
+                                "accept": "application/json"
+                            })
+                            .get("/api/hello");
+                    });
+
+    string message = future.wait(response).data;
+
+    io.println("Message received : #{message}");
+}
