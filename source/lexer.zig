@@ -1,14 +1,14 @@
 const std = @import("std");
 
-pub const LexerError = error{UnknownCharacter};
+pub const LexerError: type = error{UnknownCharacter};
 
-const TokenType = enum { String, Integer, Float, Boolean, AdditionOperator, SubstractionOperator, MultiplicationOperator, DivisionOperator, AssignmentOperator, VarKeyword, ConstKeyword, Identifier, SemiColon, Type, GreaterThan, GreaterOrEqual, Equal, NotEqual, LessOrEqual, LessThan, EOF };
-const Token = struct {
+const TokenType: type = enum { String, Integer, Float, Boolean, AdditionOperator, SubstractionOperator, MultiplicationOperator, DivisionOperator, AssignmentOperator, VarKeyword, ConstKeyword, Identifier, SemiColon, Type, GreaterThan, GreaterOrEqual, Equal, NotEqual, LessOrEqual, LessThan, EOF };
+pub const Token = struct {
     value: []u8,
     type: TokenType,
 };
 
-const KEYWORDS = [][]u8{ "var", "const" };
+const KEYWORDS: [][]u8 = [][]u8{ "var", "const" };
 
 /// Tokenizes a given source code.
 pub fn tokenize(sourceCode: []u8) ![]Token {
