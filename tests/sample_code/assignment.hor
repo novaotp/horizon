@@ -1,0 +1,2 @@
+var int age = 19;
+const bool isAdult = age >= 18;
